@@ -1,27 +1,65 @@
-import mongoose, { Schema, Document } from "mongoose";
+// src/models/Poll.ts
+import mongoose, { Document, Schema, Types } from 'mongoose';
 
-interface Option {
+export interface IOption {
+  id: string;
   text: string;
-  votes: number;
+  order: number;
 }
 
-export interface PollDocument extends Document {
+export interface IPoll extends Document {
+  _id: Types.ObjectId; 
   question: string;
-  options: Option[];
-  likes: number;
+  options: IOption[];
+  createdBy: string;
+  isActive: boolean;
   createdAt: Date;
+  updatedAt: Date;
 }
 
-const PollSchema = new Schema<PollDocument>({
-  question: { type: String, required: true },
-  options: [
-    {
-      text: { type: String, required: true },
-      votes: { type: Number, default: 0 },
-    },
-  ],
-  likes: { type: Number, default: 0 },
-  createdAt: { type: Date, default: Date.now },
+const optionSchema = new Schema<IOption>({
+  id: { 
+    type: String, 
+    required: true 
+  },
+  text: { 
+    type: String, 
+    required: true, 
+    trim: true 
+  },
+  order: { 
+    type: Number, 
+    required: true 
+  }
+}, { _id: false });
+
+const pollSchema = new Schema<IPoll>({
+  question: { 
+    type: String, 
+    required: true, 
+    trim: true 
+  },
+  options: {
+    type: [optionSchema],
+    validate: {
+      validator: function(v: IOption[]) {
+        return v && v.length >= 2 && v.length <= 10;
+      },
+      message: 'Poll must have between 2 and 10 options'
+    }
+  },
+  createdBy: { 
+    type: String, 
+    default: 'Anonymous' 
+  },
+  isActive: { 
+    type: Boolean, 
+    default: true 
+  }
+}, {
+  timestamps: true
 });
 
-export default mongoose.model<PollDocument>("Poll", PollSchema);
+pollSchema.index({ isActive: 1, createdAt: -1 });
+
+export default mongoose.model<IPoll>('Poll', pollSchema);
