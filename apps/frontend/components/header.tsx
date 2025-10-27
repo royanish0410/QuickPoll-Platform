@@ -24,7 +24,7 @@ export default function Header({ onCreatePoll, totalPolls }: HeaderProps) {
             className="flex items-center gap-3"
             whileHover={{ scale: 1.02 }}
           >
-            <div className="relative flex-shrink-0">
+            <div className="relative shrink-0">
               <div className="absolute inset-0 bg-linear-to-r from-blue-600 to-purple-600 rounded-xl blur-lg opacity-50"></div>
               <div className="relative bg-linear-to-r from-blue-600 to-purple-600 p-2 rounded-xl">
                 <TrendingUp className="w-6 h-6 text-white" />
