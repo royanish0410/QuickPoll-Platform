@@ -743,9 +743,6 @@ CORS_ORIGIN=http://localhost:3000
 
 # Database Configuration
 MONGODB_URI=mongodb://localhost:27017/quickpoll
-# For MongoDB Atlas:
-# MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/quickpoll?retryWrites=true&w=majority
-```
 
 ### Frontend (.env.local)
 
