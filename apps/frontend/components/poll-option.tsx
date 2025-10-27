@@ -36,7 +36,7 @@ export default function PollOption({ option, isSelected, hasVoted, onVote, isLea
             <motion.div 
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              className="w-6 h-6 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center shrink-0 shadow-lg"
+              className="w-6 h-6 rounded-full bg-linear-to-r from-blue-600 to-purple-600 flex items-center justify-center shrink-0 shadow-lg"
             >
               <Check className="w-4 h-4 text-white" />
             </motion.div>
@@ -56,7 +56,7 @@ export default function PollOption({ option, isSelected, hasVoted, onVote, isLea
             </span>
           )}
           {hasVoted && (
-            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <span className="text-xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               {option.percentage}%
             </span>
           )}

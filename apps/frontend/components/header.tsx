@@ -24,13 +24,13 @@ export default function Header({ onCreatePoll, totalPolls }: HeaderProps) {
             whileHover={{ scale: 1.02 }}
           >
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl blur-lg opacity-50"></div>
-              <div className="relative bg-gradient-to-r from-blue-600 to-purple-600 p-2 rounded-xl">
+              <div className="absolute inset-0 bg-linear-to-r from-blue-600 to-purple-600 rounded-xl blur-lg opacity-50"></div>
+              <div className="relative bg-linear-to-r from-blue-600 to-purple-600 p-2 rounded-xl">
                 <TrendingUp className="w-6 h-6 text-white" />
               </div>
             </div>
             <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <h1 className="text-2xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 QuickPoll
               </h1>
               <div className="flex items-center gap-2">
@@ -50,7 +50,7 @@ export default function Header({ onCreatePoll, totalPolls }: HeaderProps) {
             <Button 
               onClick={onCreatePoll}
               size="lg"
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg shadow-blue-500/30 transition-all"
+              className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg shadow-blue-500/30 transition-all"
             >
               <Plus className="w-5 h-5 mr-2" />
               Create Poll

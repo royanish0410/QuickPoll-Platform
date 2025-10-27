@@ -104,12 +104,12 @@ export default function PollCard({ poll, onUpdate, index }: PollCardProps) {
         transition={{ delay: index * 0.1 }}
       >
         <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 border-2">
-          <div className={`h-2 bg-gradient-to-r ${getGradientByIndex(index)}`} />
+          <div className={`h-2 bg-linear-to-r ${getGradientByIndex(index)}`} />
 
           <CardHeader className="pb-4">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3 flex-1">
-                <Avatar className={`bg-gradient-to-r ${getGradientByIndex(index)}`}>
+                <Avatar className={`bg-linear-to-r ${getGradientByIndex(index)}`}>
                   <AvatarFallback className="text-white font-bold">
                     {initials}
                   </AvatarFallback>
@@ -157,7 +157,7 @@ export default function PollCard({ poll, onUpdate, index }: PollCardProps) {
                   onClick={handleLike}
                   className={
                     isLiked
-                      ? 'bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600'
+                      ? 'bg-linear-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600'
                       : ''
                   }
                 >

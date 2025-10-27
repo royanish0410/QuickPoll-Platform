@@ -82,7 +82,7 @@ export default function PollFeed() {
         className="text-center py-20"
       >
         <div className="mb-6">
-          <div className="w-24 h-24 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full mx-auto flex items-center justify-center">
+          <div className="w-24 h-24 bg-linear-to-r from-blue-600 to-purple-600 rounded-full mx-auto flex items-center justify-center">
             <Sparkles className="w-12 h-12 text-white" />
           </div>
         </div>

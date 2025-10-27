@@ -171,7 +171,7 @@ export default function CreatePollModal({ isOpen, onClose, onPollCreated }: Crea
             <Button
               type="submit"
               disabled={loading}
-              className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              className="flex-1 h-12 bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
             >
               {loading ? 'Creating...' : 'Create Poll'}
             </Button>
