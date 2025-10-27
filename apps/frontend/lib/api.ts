@@ -1,132 +1,120 @@
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 
-export interface BackendPoll {
-  _id: string
-  question: string
-  options: Array<{
-    text: string
-    votes: number
-  }>
-  likes: number
-  createdAt: string
+export interface Poll {
+  _id: string;
+  id: string;
+  question: string;
+  createdBy: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  totalVotes: number;
+  totalLikes: number;
+  options: PollOption[];
 }
 
-export interface TransformedPoll {
-  id: string
-  question: string
-  options: Array<{
-    id: string
-    text: string
-    votes: number
-    percentage: number
-  }>
-  totalVotes: number
-  likes: number
-  liked: boolean
-  userVoted: boolean
-  userVote?: string
-  createdAt: Date
-  author: string
+export interface PollOption {
+  id: string;
+  text: string;
+  order: number;
+  votes: number;
+  percentage: number;
 }
 
-// Transform backend poll to frontend format
-export const transformPoll = (poll: BackendPoll): TransformedPoll => {
-  const totalVotes = poll.options.reduce((sum, opt) => sum + opt.votes, 0)
-  return {
-    id: poll._id,
-    question: poll.question,
-    options: poll.options.map((opt, idx) => ({
-      id: `opt${idx}`,
-      text: opt.text,
-      votes: opt.votes,
-      percentage: totalVotes > 0 ? Math.round((opt.votes / totalVotes) * 100) : 0,
-    })),
-    totalVotes,
-    likes: poll.likes,
-    liked: false,
-    userVoted: false,
-    createdAt: new Date(poll.createdAt),
-    author: "Anonymous",
+export interface CreatePollData {
+  question: string;
+  options: string[];
+  createdBy?: string;
+}
+
+// Get all polls
+export async function getAllPolls(): Promise<Poll[]> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/polls`);
+    const data = await response.json();
+    return data.success ? data.polls : [];
+  } catch (error) {
+    console.error('Error fetching polls:', error);
+    return [];
   }
 }
 
-const fetchOptions = {
-  headers: {
-    "Content-Type": "application/json",
-  },
-  credentials: "include" as const,
-}
-
-// Fetch all polls
-export const fetchPolls = async (): Promise<TransformedPoll[]> => {
+// Get single poll
+export async function getPoll(pollId: string): Promise<Poll | null> {
   try {
-    console.log("[v0] Fetching polls from:", BACKEND_URL)
-    const response = await fetch(`${BACKEND_URL}/api/polls`, {
-      ...fetchOptions,
-      method: "GET",
-    })
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-    }
-
-    const polls: BackendPoll[] = await response.json()
-    console.log("[v0] Polls fetched successfully:", polls.length)
-    return polls.map(transformPoll)
+    const response = await fetch(`${API_BASE_URL}/polls/${pollId}`);
+    const data = await response.json();
+    return data.success ? data.poll : null;
   } catch (error) {
-    console.error("[v0] Error fetching polls:", error)
-    console.error("[v0] Backend URL:", BACKEND_URL)
-    console.error("[v0] Make sure backend is running and CORS is configured")
-    return []
+    console.error('Error fetching poll:', error);
+    return null;
   }
 }
 
-// Create a new poll
-export const createPoll = async (question: string, options: string[]): Promise<TransformedPoll | null> => {
+// Create poll
+export async function createPoll(pollData: CreatePollData): Promise<Poll | null> {
   try {
-    const response = await fetch(`${BACKEND_URL}/api/polls`, {
-      ...fetchOptions,
-      method: "POST",
-      body: JSON.stringify({ question, options }),
-    })
-    if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-    const poll: BackendPoll = await response.json()
-    return transformPoll(poll)
+    const response = await fetch(`${API_BASE_URL}/polls`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(pollData),
+    });
+    const data = await response.json();
+    return data.success ? data.poll : null;
   } catch (error) {
-    console.error("[v0] Error creating poll:", error)
-    return null
+    console.error('Error creating poll:', error);
+    return null;
   }
 }
 
-// Vote on a poll
-export const votePoll = async (pollId: string, optionIndex: number): Promise<TransformedPoll | null> => {
+// Submit vote
+export async function submitVote(pollId: string, userId: string, optionId: string) {
   try {
-    const response = await fetch(`${BACKEND_URL}/api/polls/${pollId}/vote`, {
-      ...fetchOptions,
-      method: "PATCH",
-      body: JSON.stringify({ optionIndex }),
-    })
-    if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-    const poll: BackendPoll = await response.json()
-    return transformPoll(poll)
+    const response = await fetch(`${API_BASE_URL}/polls/${pollId}/vote`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, optionId }),
+    });
+    return await response.json();
   } catch (error) {
-    console.error("[v0] Error voting:", error)
-    return null
+    console.error('Error submitting vote:', error);
+    return { success: false };
   }
 }
 
-// Like a poll
-export const likePoll = async (pollId: string): Promise<TransformedPoll | null> => {
+// Toggle like
+export async function toggleLike(pollId: string, userId: string) {
   try {
-    const response = await fetch(`${BACKEND_URL}/api/polls/${pollId}/like`, {
-      ...fetchOptions,
-      method: "PATCH",
-    })
-    if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-    const poll: BackendPoll = await response.json()
-    return transformPoll(poll)
+    const response = await fetch(`${API_BASE_URL}/polls/${pollId}/like`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId }),
+    });
+    return await response.json();
   } catch (error) {
-    console.error("[v0] Error liking poll:", error)
-    return null
+    console.error('Error toggling like:', error);
+    return { success: false };
+  }
+}
+
+// Check user vote
+export async function getUserVote(pollId: string, userId: string) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/polls/${pollId}/vote/user?userId=${userId}`);
+    return await response.json();
+  } catch (error) {
+    console.error('Error checking vote:', error);
+    return { success: false, voted: false };
+  }
+}
+
+// Check user like
+export async function getUserLike(pollId: string, userId: string) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/polls/${pollId}/like/user?userId=${userId}`);
+    return await response.json();
+  } catch (error) {
+    console.error('Error checking like:', error);
+    return { success: false, liked: false };
   }
 }

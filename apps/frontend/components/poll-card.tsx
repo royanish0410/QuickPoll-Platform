@@ -1,87 +1,189 @@
-"use client"
+'use client'
 
-import { Heart, MessageCircle, Share2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import PollOption from "./poll-option"
-import { formatDistanceToNow } from "date-fns"
-
-interface Poll {
-  id: string
-  question: string
-  options: Array<{
-    id: string
-    text: string
-    votes: number
-    percentage: number
-  }>
-  totalVotes: number
-  likes: number
-  liked: boolean
-  userVoted: boolean
-  userVote?: string
-  createdAt: Date
-  author: string
-}
+import { useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
+import { Poll } from '@/lib/api'
+import { submitVote, toggleLike, getUserVote, getUserLike } from '@/lib/api'
+import { generateUserId, formatDate, getGradientByIndex } from '@/lib/utils'
+import { Heart, Users, Clock, Sparkles, Check } from 'lucide-react'
+import PollOption from './poll-option'
+import { motion } from 'framer-motion'
+import { toast } from 'sonner'
+import Confetti from 'react-confetti'
 
 interface PollCardProps {
   poll: Poll
-  onVote: (pollId: string, optionId: string) => void
-  onLike: (pollId: string) => void
+  onUpdate?: () => void
+  index: number
 }
 
-export default function PollCard({ poll, onVote, onLike }: PollCardProps) {
+export default function PollCard({ poll, onUpdate, index }: PollCardProps) {
+  const [userId] = useState(() => generateUserId())
+  const [selectedOption, setSelectedOption] = useState<string | null>(null)
+  const [hasVoted, setHasVoted] = useState(false)
+  const [isLiked, setIsLiked] = useState(false)
+  const [likes, setLikes] = useState(poll.totalLikes)
+  const [voting, setVoting] = useState(false)
+  const [showConfetti, setShowConfetti] = useState(false)
+
+  useEffect(() => {
+    checkUserInteractions()
+  }, [poll._id])
+
+  const checkUserInteractions = async () => {
+    const [voteResult, likeResult] = await Promise.all([
+      getUserVote(poll._id, userId),
+      getUserLike(poll._id, userId),
+    ])
+
+    if (voteResult.voted) {
+      setSelectedOption(voteResult.optionId)
+      setHasVoted(true)
+    }
+
+    setIsLiked(likeResult.liked)
+  }
+
+  const handleVote = async (optionId: string) => {
+    if (voting || hasVoted) return
+
+    setVoting(true)
+    const result = await submitVote(poll._id, userId, optionId)
+
+    if (result.success) {
+      setSelectedOption(optionId)
+      setHasVoted(true)
+      setShowConfetti(true)
+      setTimeout(() => setShowConfetti(false), 3000)
+
+      toast.success('Vote Recorded 🎉', {
+        description: 'Your vote has been counted successfully.',
+      })
+
+      onUpdate?.()
+    } else {
+      toast.error('Failed to record vote.')
+    }
+
+    setVoting(false)
+  }
+
+  const handleLike = async () => {
+    const result = await toggleLike(poll._id, userId)
+    if (result.success) {
+      setIsLiked(result.liked)
+      setLikes(result.totalLikes)
+      onUpdate?.()
+    }
+  }
+
+  const leadingOption = poll.options.reduce(
+    (max, opt) => (opt.votes > max.votes ? opt : max),
+    poll.options[0]
+  )
+
+  const initials = poll.createdBy.substring(0, 2).toUpperCase()
+
   return (
-    <div className="rounded-xl border border-border bg-card p-6 shadow-sm transition-all hover:shadow-md">
-      {/* Header */}
-      <div className="mb-4 flex items-start justify-between">
-        <div>
-          <h2 className="text-xl font-semibold text-foreground">{poll.question}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            by {poll.author} • {formatDistanceToNow(poll.createdAt, { addSuffix: true })}
-          </p>
-        </div>
-      </div>
+    <>
+      {showConfetti && (
+        <Confetti
+          width={window.innerWidth}
+          height={window.innerHeight}
+          recycle={false}
+          numberOfPieces={200}
+        />
+      )}
 
-      {/* Options */}
-      <div className="mb-6 space-y-3">
-        {poll.options.map((option) => (
-          <PollOption
-            key={option.id}
-            option={option}
-            isSelected={poll.userVote === option.id}
-            userVoted={poll.userVoted}
-            onClick={() => !poll.userVoted && onVote(poll.id, option.id)}
-          />
-        ))}
-      </div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: index * 0.1 }}
+      >
+        <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 border-2">
+          <div className={`h-2 bg-gradient-to-r ${getGradientByIndex(index)}`} />
 
-      {/* Stats */}
-      <div className="mb-4 flex items-center gap-4 text-sm text-muted-foreground">
-        <span>{poll.totalVotes.toLocaleString()} votes</span>
-        <span>•</span>
-        <span>{poll.likes.toLocaleString()} likes</span>
-      </div>
+          <CardHeader className="pb-4">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3 flex-1">
+                <Avatar className={`bg-gradient-to-r ${getGradientByIndex(index)}`}>
+                  <AvatarFallback className="text-white font-bold">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-gray-900 mb-1">{poll.question}</h3>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <Badge variant="secondary" className="text-xs">
+                      <Clock className="w-3 h-3 mr-1" />
+                      {formatDate(poll.createdAt)}
+                    </Badge>
+                    <span className="text-sm text-gray-600">by {poll.createdBy}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardHeader>
 
-      {/* Actions */}
-      <div className="flex gap-2 border-t border-border pt-4">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="flex-1 gap-2 text-muted-foreground hover:text-foreground"
-          onClick={() => onLike(poll.id)}
-        >
-          <Heart className={`h-4 w-4 ${poll.liked ? "fill-red-500 text-red-500" : ""}`} />
-          Like
-        </Button>
-        <Button variant="ghost" size="sm" className="flex-1 gap-2 text-muted-foreground hover:text-foreground">
-          <MessageCircle className="h-4 w-4" />
-          Comment
-        </Button>
-        <Button variant="ghost" size="sm" className="flex-1 gap-2 text-muted-foreground hover:text-foreground">
-          <Share2 className="h-4 w-4" />
-          Share
-        </Button>
-      </div>
-    </div>
+          <CardContent className="space-y-4">
+            <div className="space-y-3">
+              {poll.options.map((option) => (
+                <PollOption
+                  key={option.id}
+                  option={option}
+                  isSelected={selectedOption === option.id}
+                  hasVoted={hasVoted}
+                  onVote={handleVote}
+                  isLeading={hasVoted && option.id === leadingOption.id && poll.totalVotes > 0}
+                />
+              ))}
+            </div>
+
+            {!hasVoted && (
+              <div className="flex items-center gap-2 text-sm text-gray-500 bg-blue-50 p-3 rounded-lg">
+                <Sparkles className="w-4 h-4 text-blue-600" />
+                <span>Click on an option to cast your vote</span>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between pt-4 border-t">
+              <div className="flex items-center gap-4">
+                <Button
+                  variant={isLiked ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={handleLike}
+                  className={
+                    isLiked
+                      ? 'bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600'
+                      : ''
+                  }
+                >
+                  <Heart className={`w-4 h-4 mr-1 ${isLiked ? 'fill-current' : ''}`} />
+                  {likes}
+                </Button>
+
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Users className="w-4 h-4" />
+                  <span className="font-medium">{poll.totalVotes} votes</span>
+                </div>
+              </div>
+
+              {hasVoted && (
+                <Badge
+                  variant="outline"
+                  className="bg-green-50 text-green-700 border-green-200 flex items-center"
+                >
+                  <Check className="w-3 h-3 mr-1" />
+                  Voted
+                </Badge>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    </>
   )
 }
