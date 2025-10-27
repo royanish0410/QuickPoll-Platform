@@ -1004,7 +1004,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👨‍💻 Author
 
-**Your Name**
+**Anish Anand**
 - GitHub: [https://github.com/royanish0410)]
 - LinkedIn: [https://linkedin.com/anish-anand-555b08271]
 - Email: anish.anandroy@gmail.com
