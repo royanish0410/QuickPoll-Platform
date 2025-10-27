@@ -11,16 +11,15 @@ dotenv.config();
 const app = express();
 const server = http.createServer(app);
 
-// ✅ CORS Setup for both local + production
-const allowedOrigins = [
-  process.env.CORS_ORIGIN || "http://localhost:3000",
-  "https://quick-poll-platform-frontend.vercel.app",
-  "http://localhost:3000",
-];
+// ✅ Read environment variables
+const PORT = process.env.PORT || 4000;
+const FRONTEND_ORIGIN =
+  process.env.CORS_ORIGIN || "http://localhost:3000";
 
+// ✅ CORS setup (for local + production)
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: [FRONTEND_ORIGIN, "http://localhost:3000"],
     credentials: true,
   })
 );
@@ -28,19 +27,19 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ Socket.IO setup
+// ✅ Socket.IO setup with same allowed origins
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: [FRONTEND_ORIGIN, "http://localhost:3000"],
     methods: ["GET", "POST"],
     credentials: true,
   },
 });
 
-// Attach io to app for use in routes
+// Attach io to app for route-level use
 app.set("io", io);
 
-// ✅ Socket.IO connection handler
+// ✅ Socket.IO connection handling
 io.on("connection", (socket) => {
   console.log("✅ Client connected:", socket.id);
 
@@ -63,7 +62,7 @@ io.on("connection", (socket) => {
   });
 });
 
-// ✅ Health check endpoint
+// ✅ API Health check
 app.get("/", (req, res) => {
   res.json({
     status: "ok",
@@ -85,10 +84,10 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// ✅ Main API Routes
+// ✅ Poll routes
 app.use("/api/polls", pollRoutes);
 
-// 404 handler
+// ✅ 404 handler
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -96,19 +95,24 @@ app.use((req, res) => {
   });
 });
 
-// Global error handler
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error("❌ Error:", err);
-  res.status(err.statusCode || 500).json({
-    success: false,
-    message: err.message || "Internal Server Error",
-    ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
-  });
-});
+// ✅ Global error handler
+app.use(
+  (
+    err: any,
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    console.error("❌ Error:", err);
+    res.status(err.statusCode || 500).json({
+      success: false,
+      message: err.message || "Internal Server Error",
+      ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
+    });
+  }
+);
 
-// ✅ Server start logic
-const PORT = process.env.PORT || 4000;
-
+// ✅ Start the server
 const startServer = async () => {
   try {
     await connectDB();
@@ -116,6 +120,7 @@ const startServer = async () => {
       console.log(`🚀 QuickPoll server running on port ${PORT}`);
       console.log(`📡 Socket.IO active`);
       console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
+      console.log(`🔗 Frontend Origin: ${FRONTEND_ORIGIN}`);
     });
   } catch (error) {
     console.error("❌ Failed to start server:", error);
