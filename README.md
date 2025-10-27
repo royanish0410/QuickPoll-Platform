@@ -219,8 +219,8 @@ npm run dev
 ### Step 4: Access Application
 
 Open your browser and navigate to:
-- **Frontend:** http://localhost:3000
-- **Backend API:** http://localhost:4000
+- **Frontend:** http://localhost:3000 || https://quick-poll-platform-frontend.vercel.app/
+- **Backend API:** http://localhost:4000 || https://quickpoll-backend-8298.onrender.com
 
 ---
 
@@ -1005,8 +1005,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 👨‍💻 Author
 
 **Your Name**
-- GitHub: [@yourusername](https://github.com/royanish0410)
-- LinkedIn: [Your Name](https://linkedin.com/anish-anand-555b08271)
+- GitHub: [https://github.com/royanish0410)]
+- LinkedIn: [https://linkedin.com/anish-anand-555b08271]
 - Email: anish.anandroy@gmail.com
 
 ---
